@@ -1,103 +1,577 @@
+"use client";
+
+import { useState, ChangeEvent, FormEvent } from "react";
 import Image from "next/image";
+import Head from "next/head";
+
+// Define interface for form questions
+interface FormQuestion {
+  id: string;
+  label: string;
+  type: string;
+  required?: boolean;
+  options?: string[];
+}
+
+// Form sections and their questions
+// Chicago Giants team colors
+const teamColors = {
+  primary: "#0E3386", // Deep blue
+  secondary: "#CC0000", // Red
+  accent: "#FFD700", // Gold
+  text: "#333333",
+  background: "#F5F5F5",
+};
+
+const formSections = [
+  {
+    id: 1,
+    title: "Personal Details",
+    questions: [
+      { id: "fullName", label: "Fan Name", type: "text", required: true },
+      { id: "email", label: "Email address", type: "email", required: true },
+      { id: "phone", label: "Phone number", type: "tel", required: true },
+      {
+        id: "socialMedia",
+        label: "Social media handles (X, Facebook, Instagram)",
+        type: "text",
+      },
+      {
+        id: "sex",
+        label: "Sex",
+        type: "select",
+        options: ["Select", "Male", "Female", "Prefer not to say"],
+        required: true,
+      },
+      { id: "age", label: "Age", type: "number", required: true },
+      {
+        id: "maritalStatus",
+        label: "Marital status",
+        type: "select",
+        options: [
+          "Select",
+          "Single",
+          "Married",
+          "Divorced",
+          "Widowed",
+          "Prefer not to say",
+        ],
+        required: true,
+      },
+      {
+        id: "address",
+        label: "Home address",
+        type: "textarea",
+        required: true,
+      },
+    ],
+  },
+  {
+    id: 2,
+    title: "Fan Engagement Experience",
+    questions: [
+      {
+        id: "prevExperience",
+        label:
+          "Have you previously worked as a fan coach or in a similar role? If yes, please describe your experience.",
+        type: "textarea",
+        required: true,
+      },
+      {
+        id: "engagementPlan",
+        label: "How do you plan to engage with fans and promote team spirit?",
+        type: "textarea",
+        required: true,
+      },
+      {
+        id: "socialMediaUse",
+        label:
+          "What social media platforms do you use to connect with fans, and how do you intend to leverage them for fan coaching?",
+        type: "textarea",
+        required: true,
+      },
+    ],
+  },
+  {
+    id: 3,
+    title: "Team Knowledge and Passion",
+    questions: [
+      {
+        id: "motivation",
+        label:
+          "Why do you want to be a fan coach for Willy Adames with the Chicago Giants?",
+        type: "textarea",
+        required: true,
+      },
+      {
+        id: "playerKnowledge",
+        label:
+          "As a potential fan coach, what do you know about Willy Adames' baseball career, statistics, and recent performance with the Chicago Giants?",
+        type: "textarea",
+        required: true,
+      },
+      {
+        id: "stayUpdated",
+        label:
+          "How do you stay updated about the player's activities and developments?",
+        type: "textarea",
+        required: true,
+      },
+    ],
+  },
+  {
+    id: 4,
+    title: "Coaching and Leadership Skills",
+    questions: [
+      {
+        id: "coachingExperience",
+        label:
+          "Do you have any experience in coaching or leading groups? If yes, please elaborate.",
+        type: "textarea",
+        required: true,
+      },
+      {
+        id: "conflictHandling",
+        label: "How would you handle conflicts or disagreements among fans?",
+        type: "textarea",
+        required: true,
+      },
+      {
+        id: "motivationStrategies",
+        label:
+          "What strategies would you use to motivate and inspire fans to support Willy Adames during home and away games?",
+        type: "textarea",
+        required: true,
+      },
+    ],
+  },
+  {
+    id: 5,
+    title: "Availability and Commitment",
+    questions: [
+      {
+        id: "weeklyHours",
+        label: "How many hours per week can you dedicate to fan coaching?",
+        type: "number",
+        required: true,
+      },
+      {
+        id: "eventAvailability",
+        label:
+          "Are you available to attend games, events, or online meetings? If yes, please specify your availability.",
+        type: "textarea",
+        required: true,
+      },
+      {
+        id: "commitmentDuration",
+        label: "How long do you plan to commit to being a fan coach?",
+        type: "textarea",
+        required: true,
+      },
+    ],
+  },
+  {
+    id: 6,
+    title: "Additional Information",
+    questions: [
+      {
+        id: "additionalInfo",
+        label:
+          "Is there anything else you'd like to share about yourself or your qualifications as a fan coach?",
+        type: "textarea",
+      },
+    ],
+  },
+];
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [currentSection, setCurrentSection] = useState(0);
+  const [formData, setFormData] = useState<{ [key: string]: string }>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const validateSection = () => {
+    const currentQuestions = formSections[currentSection].questions;
+    const newErrors: { [key: string]: string | null } = {};
+    let isValid = true;
+
+    currentQuestions.forEach((question) => {
+      if (question.required && !formData[question.id]) {
+        newErrors[question.id] = `${question.label} is required`;
+        isValid = false;
+      }
+    });
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const nextSection = () => {
+    if (validateSection()) {
+      if (currentSection < formSections.length - 1) {
+        setCurrentSection((prev) => prev + 1);
+        window.scrollTo(0, 0);
+      }
+    }
+  };
+
+  const prevSection = () => {
+    if (currentSection > 0) {
+      setCurrentSection((prev) => prev - 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // Validate all form sections, not just the current one
+    const newErrors: { [key: string]: string | null } = {};
+    let isValid = true;
+    let firstInvalidSection = -1;
+
+    // Loop through all sections and validate each required field
+    formSections.forEach((section, sectionIndex) => {
+      section.questions.forEach((question) => {
+        if (question.required && !formData[question.id]) {
+          newErrors[question.id] = `${question.label} is required`;
+          isValid = false;
+
+          // Keep track of the first section with an error
+          if (firstInvalidSection === -1) {
+            firstInvalidSection = sectionIndex;
+          }
+        }
+      });
+    });
+
+    setErrors(newErrors);
+
+    if (isValid) {
+      try {
+        // Send data to email API endpoint
+        const response = await fetch('/api/sendEmail', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            formData,
+            formSections 
+          }),
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to send email');
+        }
+        
+        console.log("Form submitted and email sent:", result);
+        setSubmitted(true);
+        
+        // Reset form
+        setCurrentSection(0);
+        setFormData({});
+        setErrors({});
+      } catch (error) {
+        console.error('Error sending email:', error);
+        alert('Failed to send your application. Please try again.');
+      }
+    } else if (
+      firstInvalidSection !== -1 &&
+      firstInvalidSection !== currentSection
+    ) {
+      // Navigate to the first section with errors
+      setCurrentSection(firstInvalidSection);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const renderFormField = (question: FormQuestion) => {
+    // Define a base class and a class for error state
+    const baseClass =
+      "w-full px-4 py-2 text-black-500 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#CC0000]";
+    const errorClass = errors[question.id]
+      ? "border-red-500"
+      : "border-gray-300";
+
+    switch (question.type) {
+      case "text":
+      case "email":
+      case "tel":
+      case "number":
+        return (
+          <input
+            type={question.type}
+            id={question.id}
+            name={question.id}
+            value={formData[question.id] || ""}
+            onChange={handleChange}
+            className={`${baseClass} ${errorClass}`}
+            required={question.required}
+          />
+        );
+      case "textarea":
+        return (
+          <textarea
+            id={question.id}
+            name={question.id}
+            value={formData[question.id] || ""}
+            onChange={handleChange}
+            rows={4}
+            className={`${baseClass} ${errorClass}`}
+            required={question.required}
+          ></textarea>
+        );
+      case "select":
+        return (
+          <select
+            id={question.id}
+            name={question.id}
+            value={formData[question.id] || ""}
+            onChange={handleChange}
+            className={`${baseClass} ${errorClass}`}
+            required={question.required}
           >
+            {question.options?.map((option, index) => (
+              <option key={index} value={option === "Select" ? "" : option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        );
+      default:
+        return null;
+    }
+  };
+
+  console.log(errors);
+
+  if (submitted) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center bg-gray-50 p-4"
+        style={{
+          backgroundImage: "url('/baseball-texture-bg.jpg')",
+          backgroundSize: "cover",
+          backgroundBlendMode: "overlay",
+          backgroundColor: "rgba(245,245,245,0.92)",
+        }}
+      >
+        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg text-center border-4 border-[#0E3386]">
+          <div className="mb-6 relative">
+            <div className="absolute -top-20 left-1/2 transform -translate-x-1/2">
+              <Image
+                src="/baseball-logo.png"
+                alt="Chicago Giants Logo"
+                width={80}
+                height={80}
+                className="mx-auto"
+              />
+            </div>
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/willy-adames.png"
+              alt="Willy Adames"
+              objectFit="cover"
+              objectPosition="center top"
+              width={150}
+              height={150}
+              className="mx-auto rounded-full border-4 border-[#0E3386]"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+          <h2 className="text-2xl font-bold mb-4 text-[#0E3386]">
+            Application Submitted!
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Thank you for applying to be a fan coach for Willy Adames of the
+            Chicago Giants. We've received your application and will be in touch
+            soon. Go Giants!
+          </p>
+          <button
+            onClick={() => {
+              setSubmitted(false);
+              setCurrentSection(0);
+              setFormData({});
+            }}
+            className="px-6 py-2 bg-[#0E3386] text-white font-medium rounded-md hover:bg-[#092a6b] transition duration-300 border-2 border-[#CC0000]"
           >
-            Read our docs
-          </a>
+            Submit Another Application
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-satoshi"
+      style={{
+        backgroundImage: "url('/baseball-texture-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "bottom center",
+        backgroundBlendMode: "overlay",
+        backgroundColor: "rgba(0,0,0,0.22)",
+      }}
+    >
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-10">
+          <div className="mb-4 mx-auto w-24 h-24 relative">
+            <Image
+              src="/baseball-logo.png"
+              alt="Chicago Giants Logo"
+              width={1000}
+              height={1000}
+              className="mx-auto"
+            />
+          </div>
+          <h1 className="font-helvetica_compressed text-3xl font-bold text-[#0E3386] sm:text-4xl">
+            CHICAGO GIANTS
+          </h1>
+          <h2 className=" text-2xl font-bold text-[#CC0000] mt-2">
+            Fan Coach Application
+          </h2>
+          <p className="mt-3 text-lg text-white-50">
+            Become a <span className="font-semibold">Fan Coach</span> for Willy
+            Adames
+          </p>
+          <div className="flex justify-center mt-4">
+            <div className="px-4 py-1 bg-[#FFD700] rounded-full text-[#0E3386] font-bold inline-block">
+              #20 | Shortstop
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between mb-2">
+            {formSections.map((section, index) => (
+              <div
+                key={section.id}
+                className={`flex flex-col items-center ${
+                  index <= currentSection ? "text-[#CC0000]" : "text-gray-400"
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 flex text-white-50 items-center justify-center rounded-full border-2 ${
+                    index <= currentSection
+                      ? "border-[#0E3386] bg-[#0E3386] text-white"
+                      : "border-gray-300"
+                  } mb-1`}
+                >
+                  {index < currentSection ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ) : (
+                    index + 1
+                  )}
+                </div>
+                <span className="text-xs text-white-50 hidden sm:block">
+                  {section.title}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div
+              className="bg-[#CC0000] h-2.5 rounded-full"
+              style={{
+                width: `${((currentSection + 1) / formSections.length) * 100}%`,
+              }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Form */}
+        <div className="bg-white-500/60 backdrop-blur-[3px] shadow overflow-hidden rounded-[14px] border-4 border-[#0E3386]">
+          <div className="px-4 py-5 sm:p-6">
+            <h2 className="text-xl font-semibold mb-6 text-[#0E3386] flex items-center">
+              <span>
+                Section {currentSection + 1}:{" "}
+                {formSections[currentSection].title}
+              </span>
+            </h2>
+
+            <form
+              onSubmit={
+                currentSection === formSections.length - 1
+                  ? handleSubmit
+                  : nextSection
+              }
+            >
+              <div className="space-y-6">
+                {formSections[currentSection].questions.map((question) => (
+                  <div key={question.id} className="space-y-2">
+                    <label
+                      htmlFor={question.id}
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      {question.label}{" "}
+                      {question.required && (
+                        <span className="text-red-500">*</span>
+                      )}
+                    </label>
+                    {renderFormField(question)}
+                    {errors[question.id] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[question.id]}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 flex justify-between">
+                {currentSection > 0 && (
+                  <button
+                    type="button"
+                    onClick={prevSection}
+                    className="px-5 py-2 border border-[#0E3386] rounded-md shadow-sm text-sm font-medium text-[#0E3386] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0E3386]"
+                  >
+                    Previous
+                  </button>
+                )}
+                <div className="flex-1"></div>
+                <button
+                  type={
+                    currentSection === formSections.length - 1
+                      ? "submit"
+                      : "button"
+                  }
+                  onClick={nextSection}
+                  className="px-5 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#CC0000] hover:bg-[#a80000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700]"
+                >
+                  {currentSection === formSections.length - 1
+                    ? "Submit Application"
+                    : "Next"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
