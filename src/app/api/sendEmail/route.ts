@@ -1,6 +1,21 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
+// Define interfaces for our form data types
+interface FormQuestion {
+  id: string;
+  label: string;
+  type: string;
+  required?: boolean;
+  options?: string[];
+}
+
+interface FormSection {
+  id: number;
+  title: string;
+  questions: FormQuestion[];
+}
+
 export async function POST(req: Request) {
   try {
     // Initialize Resend with your API key (must be set in .env.local)
@@ -17,10 +32,10 @@ export async function POST(req: Request) {
     let emailContent = `<h1>New Fan Coach Application Submission</h1>`;
 
     // Loop through all sections and questions to create email content
-    formSections.forEach((section: any) => {
+    formSections.forEach((section: FormSection) => {
       emailContent += `<h2>${section.title}</h2><ul>`;
       
-      section.questions.forEach((question: any) => {
+      section.questions.forEach((question: FormQuestion) => {
         const answer = formData[question.id] || "Not provided";
         emailContent += `<li><strong>${question.label}:</strong> ${answer}</li>`;
       });

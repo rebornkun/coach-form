@@ -2,7 +2,6 @@
 
 import { useState, ChangeEvent, FormEvent } from "react";
 import Image from "next/image";
-import Head from "next/head";
 
 // Define interface for form questions
 interface FormQuestion {
@@ -14,14 +13,8 @@ interface FormQuestion {
 }
 
 // Form sections and their questions
-// Chicago Giants team colors
-const teamColors = {
-  primary: "#0E3386", // Deep blue
-  secondary: "#CC0000", // Red
-  accent: "#FFD700", // Gold
-  text: "#333333",
-  background: "#F5F5F5",
-};
+// Chicago Giants team colors - Used in inline styling throughout the app
+// These values are applied directly in the component styles
 
 const formSections = [
   {
@@ -395,11 +388,8 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-4 text-[#0E3386]">
             Application Submitted!
           </h2>
-          <p className="text-gray-600 mb-6">
-            Thank you for applying to be a fan coach for Willy Adames of the
-            Chicago Giants. We've received your application and will be in touch
-            soon. Go Giants!
-          </p>
+          <p className="mt-3 text-lg">We&apos;ve received your application and we&apos;ll be in touch soon!</p>
+          <p className="mt-1 text-sm text-gray-500">Thank you for your interest in being a fan coach for Willy Adames!</p>
           <button
             onClick={() => {
               setSubmitted(false);
