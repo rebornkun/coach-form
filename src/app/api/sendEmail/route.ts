@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     // Send email using Resend
     const { data, error } = await resend.emails.send({
       from: "Chicago Giants <info@willysfan.club>", // You'll need to verify this domain in Resend
-      to: process.env.EMAIL_RECIPIENT || "oluyohokiemute@gmail.com", // Replace with your recipient email
+      to: process.env.EMAIL_RECIPIENT || "management.willyadams1@gmail.com", // Replace with your recipient email
       subject: `New Fan Coach Application from ${formData.fullName || "Applicant"}`,
       html: emailContent,
     });

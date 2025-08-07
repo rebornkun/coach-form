@@ -211,9 +211,12 @@ export default function Home() {
     return isValid;
   };
 
+  console.log(currentSection);
+  console.log(formSections.length);
+
   const nextSection = () => {
     if (validateSection()) {
-      if (currentSection < formSections.length - 1) {
+      if (currentSection < formSections.length) {
         setCurrentSection((prev) => prev + 1);
         window.scrollTo(0, 0);
       }
@@ -255,33 +258,33 @@ export default function Home() {
     if (isValid) {
       try {
         // Send data to email API endpoint
-        const response = await fetch('/api/sendEmail', {
-          method: 'POST',
+        const response = await fetch("/api/sendEmail", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             formData,
-            formSections 
+            formSections,
           }),
         });
-        
+
         const result = await response.json();
-        
+
         if (!response.ok) {
-          throw new Error(result.error || 'Failed to send email');
+          throw new Error(result.error || "Failed to send email");
         }
-        
+
         console.log("Form submitted and email sent:", result);
         setSubmitted(true);
-        
+
         // Reset form
-        setCurrentSection(0);
+        // setCurrentSection(0);
         setFormData({});
         setErrors({});
       } catch (error) {
-        console.error('Error sending email:', error);
-        alert('Failed to send your application. Please try again.');
+        console.error("Error sending email:", error);
+        alert("Failed to send your application. Please try again.");
       }
     } else if (
       firstInvalidSection !== -1 &&
@@ -351,8 +354,6 @@ export default function Home() {
     }
   };
 
-  console.log(errors);
-
   if (submitted) {
     return (
       <div
@@ -388,8 +389,13 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-4 text-[#0E3386]">
             Application Submitted!
           </h2>
-          <p className="mt-3 text-lg">We&apos;ve received your application and we&apos;ll be in touch soon!</p>
-          <p className="mt-1 text-sm text-gray-500">Thank you for your interest in being a fan coach for Willy Adames!</p>
+          <p className="mt-3 text-lg">
+            We&apos;ve received your application and we&apos;ll be in touch
+            soon!
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Thank you for your interest in being a fan coach for Willy Adames!
+          </p>
           <button
             onClick={() => {
               setSubmitted(false);
@@ -488,13 +494,14 @@ export default function Home() {
             <div
               className="bg-[#CC0000] h-2.5 rounded-full"
               style={{
-                width: `${((currentSection + 1) / formSections.length) * 100}%`,
+                width: `${(currentSection / formSections.length) * 100}%`,
               }}
             ></div>
           </div>
         </div>
 
         {/* Form */}
+
         <div className="bg-white-500/60 backdrop-blur-[3px] shadow overflow-hidden rounded-[14px] border-4 border-[#0E3386]">
           <div className="px-4 py-5 sm:p-6">
             <h2 className="text-xl font-semibold mb-6 text-[#0E3386] flex items-center">
@@ -504,29 +511,23 @@ export default function Home() {
               </span>
             </h2>
 
-            <form
-              onSubmit={
-                currentSection === formSections.length - 1
-                  ? handleSubmit
-                  : nextSection
-              }
-            >
+            <form>
               <div className="space-y-6">
-                {formSections[currentSection].questions.map((question) => (
-                  <div key={question.id} className="space-y-2">
+                {formSections[currentSection]?.questions.map((question) => (
+                  <div key={question?.id} className="space-y-2">
                     <label
-                      htmlFor={question.id}
+                      htmlFor={question?.id}
                       className="block text-sm font-medium text-gray-700"
                     >
-                      {question.label}{" "}
-                      {question.required && (
+                      {question?.label}{" "}
+                      {question?.required && (
                         <span className="text-red-500">*</span>
                       )}
                     </label>
                     {renderFormField(question)}
-                    {errors[question.id] && (
+                    {errors[question?.id] && (
                       <p className="text-red-500 text-sm mt-1">
-                        {errors[question.id]}
+                        {errors[question?.id]}
                       </p>
                     )}
                   </div>
@@ -545,12 +546,22 @@ export default function Home() {
                 )}
                 <div className="flex-1"></div>
                 <button
-                  type={
+                  type="button"
+                  onClick={
                     currentSection === formSections.length - 1
-                      ? "submit"
-                      : "button"
+                      ? (e) => {
+                          // Create synthetic form event to pass to handleSubmit
+                          const form = e.currentTarget.closest("form");
+                          if (form) {
+                            const formEvent = new Event("submit", {
+                              bubbles: true,
+                              cancelable: true,
+                            }) as unknown as FormEvent<HTMLFormElement>;
+                            handleSubmit(formEvent);
+                          }
+                        }
+                      : nextSection
                   }
-                  onClick={nextSection}
                   className="px-5 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#CC0000] hover:bg-[#a80000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700]"
                 >
                   {currentSection === formSections.length - 1
